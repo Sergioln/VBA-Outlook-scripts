@@ -1,3 +1,4 @@
+'Sub myRuleMacro(item As Outlook.MailItem)
 Sub moveHeavyMails()
 
     'Create the main object to manage theOutlook session
@@ -7,8 +8,10 @@ Sub moveHeavyMails()
     Dim dstFolder As Outlook.MAPIFolder
 
     Dim item As Object
+    Dim attTemp As Object
     Dim nMails As Integer: nMails = 0
-    
+    Dim totalAttSize As Double
+
     'Set the source Mailbox or PST name
         'srcMailBoxName = "Origen Prueba"
         'src_Pst_Folder_Name = "Bandeja de entrada"
@@ -25,19 +28,25 @@ Sub moveHeavyMails()
     For Each item In srcFolder.Items
         If TypeOf item Is Outlook.MailItem Then
             Dim currentMail As Outlook.MailItem: Set currentMail = item
-            'Date of receving
-            MsgBox (currentMail.ReceivedTime)
+            totalAttSize = 0
+            
+            'Check the total size of the attachments
+            If currentMail.Attachments.Count > 0 Then
+                For Each attObj In currentMail.Attachments
+                    totalAttSize = totalAttSize + attObj.Size
+                    MsgBox "ItemAtt size " & attObj.Size
+                Next
+            End If
+            
             'Check it´s older than yesterday (-1) and bigger than 2 MB and it´s read
-            If (currentMail.ReceivedTime < (DateTime.now - 1)) And (currentMail.Size > 2000000) And (Not currentMail.UnRead) Then
-                
+            If (currentMail.ReceivedTime < (DateTime.now - 1)) And (totalAttSize > 2097152) And (Not currentMail.UnRead) Then
+
                 'Size of the total message
-                MsgBox "Total size: " & currentMail.Size & "\nItem size: " & currentMail.Attachments.item(1).Size
+                MsgBox "Total size: " & totalAttSize
                 nMails = nMails + 1
                 currentMail.Move dstFolder
             End If
-        'If n > 5 Then
-            'Exit For
         End If
     Next
-    MsgBox SourceFolder & nMails & " correos pesados movidos"
+    MsgBox nMails & " correos pesados movidos"
 End Sub
